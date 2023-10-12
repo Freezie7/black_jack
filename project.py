@@ -31,8 +31,8 @@ class Card(GameSprite):
         rand = random.randint(1, 52) - 1
         return list(cards.keys())[rand]
 
-but = GameSprite("rectangle.png", 10, 420, 100, 80)
-but2 = GameSprite("rectangle.png",100, 420, 100, 80)
+but = GameSprite("rectangle.png", 10, 430, 100, 80)
+but2 = GameSprite("rectangle.png",100, 430, 100, 80)
 #создай окно игры
 window_size = [700, 500]
 window = display.set_mode(window_size)
@@ -47,6 +47,7 @@ background = transform.scale(image.load("fon.jpg"), window_size)
 clock = time.Clock()
 FPS = 60
 game = True
+isHold = False
 point1 = 0
 point2 = 0
 players = sprite.Group()
@@ -74,10 +75,14 @@ cards = {
 font.init()
 fontmy = font.SysFont('Arial', 40)
 fontmy2 = font.SysFont('Arial', 70)
-keys = fontmy.render("1 - Hold / 2 - Hit", 1, (255,255,255))
+fontmy3 = font.SysFont('Arial', 32)
+
+hold = fontmy3.render("Hold", 1, (255,255,255))
+hit = fontmy3.render("Hit", 1, (255,255,255))
 
 lose = fontmy2.render("ВЫ ПРОИГРАЛИ!",1, (255, 0, 0))
-
+win = fontmy2.render("ВЫ ПОБЕДИЛИ!",1, (255, 255, 0))
+draw = fontmy2.render("НИЧЬЯ!",1, (0, 255, 0))
 #2 НАЧАЛЬНЫЕ КАРТЫ ИГРОКА
 name_card = give(name_card)
 point1 += cards[name_card]
@@ -104,9 +109,9 @@ while game:
     for e in event.get():
         if e.type == MOUSEBUTTONDOWN and e.button == 1:
             x, y = e.pos
-            if but.rect.collidepoint(x, y):
-                print("Hold")
-            if but2.rect.collidepoint(x, y) and point1 <= 21:
+            if but.rect.collidepoint(x, y) and point1 <= 21 and point2 <= 21:
+                isHold = True
+            if but2.rect.collidepoint(x, y) and point1 <= 21 and point2 <= 21 and isHold == False:
                 name_card = give(name_card)
                 point1 += cards[name_card]
                 num_card += 1
@@ -118,14 +123,32 @@ while game:
     card_point1 = fontmy.render(str(point1), 1, (255, 255,255))
     card_point2 = fontmy.render(str(point2), 1, (255, 255,255))
 
+    if isHold == True:
+        while point2 < point1 and point1 <= 21 and point2 != 20:
+            name_card = give(name_card)
+            point2 += cards[name_card]
+            num_card2 += 1
+            create2(name_card, num_card2).add(dealers)
+
 
     window.blit(background, (0,0))
     window.blit(card_point1, (310, 450))
     window.blit(card_point2, (310, 180))
 
+    if point1 > 21 or isHold == True and point1 < point2 and point2 <=21:
+        window.blit(lose, (120, 210))
+    
+    if point1 > point2 and point1 <=21 and isHold == True or point2 > 21 and point1 <=21:
+        window.blit(win, (120, 210))
+    
+    if point1 == point2 and isHold == True:
+        window.blit(draw, (220, 210))
+        
 
     but.reset()
     but2.reset()
+    window.blit(hold, (30, 450))
+    window.blit(hit, (130, 450))
     players.draw(background)
     dealers.draw(background)
 
